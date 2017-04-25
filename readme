@@ -1,2 +1,5 @@
 To compile the code : make
 To run the code : sudo ./capture  [Root permissions required]
+
+Requirement - gnuplot
+

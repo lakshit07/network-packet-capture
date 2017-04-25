@@ -441,13 +441,14 @@ int raw_init (const char *device)
 
 void get_list()
 {
+	int i, j;
     int cur=0;
     int temp = 0;
-    for(int i=0;i<cnt;i++)
+    for(i=0;i<cnt;i++)
     {
         //printf("%s\n",Sour[i]);
         int flg=0;
-        for(int j=0;j<cur;j++)
+        for(j=0;j<cur;j++)
         {
             if(strcmp(Sour[i],tmp[j])==0)
             {
@@ -465,10 +466,10 @@ void get_list()
             cur++;
         }
     }
-    for(int i=0;i<cnt;i++)
+    for(i=0;i<cnt;i++)
     {
         int flg=0;
-        for(int j=0;j<cur;j++)
+        for(j=0;j<cur;j++)
         {
             if(strcmp(Dest[i],tmp[j])==0)
             {
@@ -486,7 +487,7 @@ void get_list()
             cur++;
         }
     }
-    for(int i=0;i<cur;i++)
+    for(i=0;i<cur;i++)
     {
         strcpy(tmp[i],"");
     }
@@ -505,8 +506,9 @@ void converse()
         scanf("%s",b);
         int port1,port2;
         int typ=0;
+        int i, j;
         
-        for(int i=0;i<tcp_count;i++)
+        for(i=0;i<tcp_count;i++)
         {
             
             if(strcmp(a,Sour[tcp_index[i]])==0&&strcmp(b,Dest[tcp_index[i]])==0)
@@ -515,7 +517,7 @@ void converse()
                 port1=por1[tcp_index[i]];
                 port2=por2[tcp_index[i]];
                 int flg=0;
-                for(int j=0;j<conp;j++)
+                for(j=0;j<conp;j++)
                 {
                     if(pot1[j]==port1&&pot2[j]==port2)
                     {
@@ -538,7 +540,7 @@ void converse()
                 port2=por1[tcp_index[i]];
                 port1=por2[tcp_index[i]];
                 int flg=0;
-                for(int j=0;j<conp;j++)
+                for(j=0;j<conp;j++)
                 {
                     if(pot1[j]==port1&&pot2[j]==port2)
                     {
@@ -556,7 +558,7 @@ void converse()
                 }
             }
         }
-        for(int i=0;i<udp_count;i++)
+        for(i=0;i<udp_count;i++)
         {
             if(strcmp(a,Sour[udp_index[i]])==0&&strcmp(b,Dest[udp_index[i]])==0)
             {
@@ -564,7 +566,7 @@ void converse()
                 port1=por1[tcp_index[i]];
                 port2=por2[tcp_index[i]];
                 int flg=0;
-                for(int j=0;j<conp;j++)
+                for(j=0;j<conp;j++)
                 {
                     if(pot1[j]==port1&&pot2[j]==port2)
                     {
@@ -587,7 +589,7 @@ void converse()
                 port2=por1[tcp_index[i]];
                 port1=por2[tcp_index[i]];
                 int flg=0;
-                for(int j=0;j<conp;j++)
+                for(j=0;j<conp;j++)
                 {
                     if(pot1[j]==port1&&pot2[j]==port2)
                     {
