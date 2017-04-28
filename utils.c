@@ -49,7 +49,8 @@ static void list_all(int fd, void (*show)(int fd, const char *name))
 void show(int family) 
 {
     int f =socket(family, SOCK_DGRAM, 0);
-    if(f == -1) {
+    if(f == -1) 
+    {
         perror("socket()");
         exit(EXIT_FAILURE);
     }
@@ -58,6 +59,7 @@ void show(int family)
 }
 
 void show_interfaces()
+
 {
     show(PF_INET);
     show(PF_INET6);
