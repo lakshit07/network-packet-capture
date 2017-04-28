@@ -29,7 +29,7 @@ int main(int argc, char const *argv[])
 
     while(true)
     {
-
+        cntdrop=0;
         for(i=0;i<MAX;i++)
         {
             ethern[i]=NULL;
@@ -39,16 +39,19 @@ int main(int argc, char const *argv[])
         }
         tcp = udp = http = dns = ip = total = k = 0;
         ip_count = tcp_count = udp_count = 0;
-        cnt = 0;
+        cnt = cntdrop = 0;
 
-        printf(ANSI_COLOR_YELLOW "Enter the number of packets you wish to capture (MAX - 2000) : " ANSI_COLOR_RESET);  
+        printf(ANSI_COLOR_YELLOW "Enter the number of packets you wish to capture (MAX -  ");  
+        printf("%d ) : ",MAX);
+        printf(ANSI_COLOR_RESET);
         int nop;
         scanf("%d",&nop);
         printf(ANSI_COLOR_YELLOW"Enter the name of log file (must have extension .txt) : "ANSI_COLOR_RESET);
         scanf("%s" , fname);
         flog = fopen(fname , "w");
 
-        clock_t c0 = clock();
+       struct timeval  tv1, tv2;
+       gettimeofday(&tv1, NULL);
         
         while(cnt < nop)
         {
@@ -60,10 +63,16 @@ int main(int argc, char const *argv[])
                 return 1;
             }
             printf("Packets Received : %5d\r" , cnt+1);
-            clock_t c1 = clock();
-            tm[cnt] = (double)(c1 - c0) * 1000./CLOCKS_PER_SEC;
+            gettimeofday(&tv2, NULL);
+            double val=(double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +(double) (tv2.tv_sec - tv1.tv_sec);
+            tm[cnt] = val;
             packlen[k++] = data_size;
             analyze(buf , data_size);
+            if(a != orig)
+            {
+                tmdrop[cntdrop] = val;
+                cntdrop++;
+            }
         }
         printf("Packets captured written in %s\n" , fname);
 
@@ -71,10 +80,11 @@ int main(int argc, char const *argv[])
 
         while(true)
         {
-            printf(ANSI_COLOR_GREEN "\nANALYSIS : \n1. Track conversations between pair of IP addresses\n2. Apply protocol filters to packets\n3. Display protocol hierarchy\n4. Network traffic graph\n5. Packet length analysis\n6. Quit analysis\nChoice : " ANSI_COLOR_RESET);
+            printf(ANSI_COLOR_GREEN "\nANALYSIS : \n0. Quit analysis\n1. Track conversations between pair of IP addresses\n2. Apply protocol filters to packets\n3. Display protocol hierarchy\n4. Network traffic graph\n5. Packet length analysis\n6. Packet drop analysis\n\nChoice : " ANSI_COLOR_RESET);
             scanf("%d",&choice);
-
-            if(choice == 1)   
+            if(choice==0)
+                break;
+            else if(choice == 1)   
                converse();
             else if(choice==2)
                filter();                       
@@ -85,7 +95,9 @@ int main(int argc, char const *argv[])
             else if(choice == 5)
                display_packlen();
             else if(choice == 6)
-                break;               
+               display_drop();            
+            else
+                printf(ANSI_COLOR_RED"Invalid Option"ANSI_COLOR_RESET);   
         }
 
         char c;
