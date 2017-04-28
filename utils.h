@@ -23,6 +23,7 @@
 #include <linux/if_packet.h>
 #include <stdbool.h>
 #include <time.h>
+#include <sys/time.h>
 
 
 #define MAX 5005
@@ -56,11 +57,14 @@ int pot1[MAX];
 int pot2[MAX];
 int conp;
 int cnt;
+int cntdrop;
 double tm[MAX];
+double tmdrop[MAX];
 struct ethhdr * ethern[MAX];
 struct iphdr* ipthern[MAX];
 struct tcphdr* tcpthern[MAX];
 struct udphdr* udpthern[MAX];
+int a,orig;
 
 static void interface(int fd, const char *name) ;
 static void list_all(int fd, void (*show)(int fd, const char *name)) ;
@@ -83,4 +87,7 @@ void print_ether_details(struct ethhdr* eth);
 void print_ip_details(struct iphdr* eth);
 void print_tcp_details(struct tcphdr* eth);
 void print_udp_details(struct udphdr* eth);
+unsigned short compute_tcp_checksum(struct iphdr *pIph, unsigned short *ipPayload);
+unsigned short compute_udp_checksum(struct iphdr *pIph, unsigned short *ipPayload);
+void display_drop();
 #endif
