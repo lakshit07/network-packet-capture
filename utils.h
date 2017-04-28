@@ -24,6 +24,7 @@
 #include <stdbool.h>
 #include <time.h>
 
+
 #define MAX 2005
 
 #define ANSI_COLOR_RED     "\x1b[31m"
@@ -82,5 +83,4 @@ void print_ether_details(struct ethhdr* eth);
 void print_ip_details(struct iphdr* eth);
 void print_tcp_details(struct tcphdr* eth);
 void print_udp_details(struct udphdr* eth);
-
 #endif

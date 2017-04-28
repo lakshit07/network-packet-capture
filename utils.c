@@ -15,7 +15,6 @@ static void interface(int fd, const char *name)
     printf("Interface : %-24s IP Address : %s\n", name, host);
 }
 
-
 static void list_all(int fd, void (*show)(int fd, const char *name)) 
 {
     struct ifreq *ir;
@@ -175,7 +174,7 @@ void ip_packet(char* buf, int size)
     unsigned short iphdrlen;
          
     struct iphdr *iph = (struct iphdr *)(buf  + sizeof(struct ethhdr) );
-    iphdrlen =iph->ihl*4;
+    iphdrlen = iph->ihl*4;
      
     memset(&source, 0, sizeof(source));
     source.sin_addr.s_addr = iph->saddr;
@@ -612,7 +611,7 @@ void converse()
         else
         {
             printf(ANSI_COLOR_MAGENTA"\n           IP 1             IP 2    PORT 1    PORT 2  TCP[1>2]   TCP[2>1]   UDP[1>2]   UDP[2>1]\n" ANSI_COLOR_RESET);   
-            for(int i=0;i<conp;i++)
+            for(i=0;i<conp;i++)
             {
                 printf("%15s  %15s  %8d  %8d  %8d  %9d  %9d  %9d\n",a,b,pot1[i],pot2[i],typr[i][0],typr[i][1],typr[i][2],typr[i][3]);
             }
@@ -900,7 +899,7 @@ void filter()
                     fprintf(flog,"######################################");
                 }
             }
-            for(int i=0;i<tcp;i++)
+            for(i=0;i<tcp;i++)
             {
                 int v=tcp_index[i];
                 if(por1[v]==80||por1[v]==443||por2[v]==80||por2[v]==443)    
