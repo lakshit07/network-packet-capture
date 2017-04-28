@@ -49,8 +49,7 @@ static void list_all(int fd, void (*show)(int fd, const char *name))
 void show(int family) 
 {
     int f =socket(family, SOCK_DGRAM, 0);
-    if(f == -1) 
-    {
+    if(f == -1) {
         perror("socket()");
         exit(EXIT_FAILURE);
     }
@@ -59,7 +58,6 @@ void show(int family)
 }
 
 void show_interfaces()
-
 {
     show(PF_INET);
     show(PF_INET6);
@@ -266,6 +264,18 @@ void udp_packet(unsigned char *buf , int size)
     fprintf(flog , "   Destination Port : %d\n" , ntohs(udph->dest));
     fprintf(flog , "   Length       : %d\n" , ntohs(udph->len));
     fprintf(flog , "   Checksum     : %d\n" , ntohs(udph->check));
+    orig = ntohs(udph->check);
+    unsigned short s = compute_udp_checksum(iph,(unsigned short*)udph);
+    fprintf(flog , "   Calculated Checksum       : %d\n",ntohs(s));
+     a = ntohs(s);
+    // int b = tcph->check;
+    // if(a != orig)
+    // {
+
+    //     tmdrop[cntdrop]  = (double)(c1 - c0) * 1000./CLOCKS_PER_SEC;
+    //     cntdrop++;
+    //     printf("UDP packet dropped %d %d\n",a,orig);
+    // }
    
     char pr[50];
 
@@ -348,6 +358,16 @@ void tcp_packet(unsigned char* buf, int size)
     fprintf(flog , "   Window         : %d\n",ntohs(tcph->window));
     fprintf(flog , "   Checksum       : %d\n",ntohs(tcph->check));
     fprintf(flog , "   Urgent Pointer : %d\n",tcph->urg_ptr);
+    orig = ntohs(tcph->check);
+    unsigned short s = compute_tcp_checksum(iph,(unsigned short*)tcph);
+    fprintf(flog , "   Calculated Checksum       : %d\n",ntohs(s));
+     a = ntohs(s);
+    // int b = tcph->check;
+    // if(a != orig)
+    // {
+    //     cntdrop++;
+    //     printf("TCP packet dropped %d %d\n",a,orig);
+    // }
  
     char pr[50];
 
@@ -382,6 +402,159 @@ void tcp_packet(unsigned char* buf, int size)
 
 
 
+}
+
+unsigned short compute_tcp_checksum(struct iphdr *pIph, unsigned short *ipPayload) {
+
+    register unsigned long sum = 0;
+
+    unsigned short tcpLen = ntohs(pIph->tot_len) - (pIph->ihl<<2);
+
+    struct tcphdr *tcphdrp = (struct tcphdr*)(ipPayload);
+
+    //add the pseudo header 
+
+    //the source ip
+
+    sum += (pIph->saddr>>16)&0xFFFF;
+
+    sum += (pIph->saddr)&0xFFFF;
+
+    //the dest ip
+
+    sum += (pIph->daddr>>16)&0xFFFF;
+
+    sum += (pIph->daddr)&0xFFFF;
+
+    //protocol and reserved: 6
+
+    sum += htons(IPPROTO_TCP);
+
+    //the length
+
+    sum += htons(tcpLen);
+
+ 
+
+    //add the IP payload
+
+    //initialize checksum to 0
+
+    tcphdrp->check = 0;
+
+    while (tcpLen > 1) {
+
+        sum += * ipPayload++;
+
+        tcpLen -= 2;
+
+    }
+
+    //if any bytes left, pad the bytes and add
+
+    if(tcpLen > 0) {
+
+        //printf("+++++++++++padding, %dn", tcpLen);
+
+        sum += ((*ipPayload)&htons(0xFF00));
+
+    }
+
+      //Fold 32-bit sum to 16 bits: add carrier to result
+
+      while (sum>>16) {
+
+          sum = (sum & 0xffff) + (sum >> 16);
+
+      }
+
+      sum = ~sum;
+
+    //set computation result
+
+    return (unsigned short)sum;
+
+}
+
+unsigned short compute_udp_checksum(struct iphdr *pIph, unsigned short *ipPayload) {
+
+    register unsigned long sum = 0;
+
+    struct udphdr *udphdrp = (struct udphdr*)(ipPayload);
+
+    unsigned short udpLen = htons(udphdrp->len);
+
+    //printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~udp len=%dn", udpLen);
+
+    //add the pseudo header 
+
+    //printf("add pseudo headern");
+
+    //the source ip
+
+    sum += (pIph->saddr>>16)&0xFFFF;
+
+    sum += (pIph->saddr)&0xFFFF;
+
+    //the dest ip
+
+    sum += (pIph->daddr>>16)&0xFFFF;
+
+    sum += (pIph->daddr)&0xFFFF;
+
+    //protocol and reserved: 17
+
+    sum += htons(IPPROTO_UDP);
+
+    //the length
+
+    sum += udphdrp->len;
+
+ 
+
+    //add the IP payload
+
+    //printf("add ip payloadn");
+
+    //initialize checksum to 0
+
+    udphdrp->check = 0;
+
+    while (udpLen > 1) {
+
+        sum += * ipPayload++;
+
+        udpLen -= 2;
+
+    }
+
+    //if any bytes left, pad the bytes and add
+
+    if(udpLen > 0) {
+
+        //printf("+++++++++++++++padding: %dn", udpLen);
+
+        sum += ((*ipPayload)&htons(0xFF00));
+
+    }
+
+      //Fold sum to 16 bits: add carrier to result
+
+    //printf("add carriern");
+
+      while (sum>>16) {
+
+          sum = (sum & 0xffff) + (sum >> 16);
+
+      }
+
+    //printf("one's complementn");
+
+      sum = ~sum;
+
+    //set computation result
+
+    return ((unsigned short)sum == 0x0000)?0xFFFF:(unsigned short)sum;
 }
 
 void analyze(unsigned char* buf, int size)
@@ -658,6 +831,49 @@ void display_traffic()
     fclose(gnuplotPipe);
     system("eog traffic.png >/dev/null 2>&1");
 }
+
+void display_drop()
+{
+    printf("\nNumber of packets dropped %d\n",cntdrop);
+    printf("%% of packets dropped %lf\n",(double)cntdrop/cnt*100);
+    if(cntdrop == 0) return;
+    char * commandsForgnuplot[] = {"set grid","set terminal png","set output \'drop.png\'","set xlabel \'Time(s)\'","set ylabel \'Packets dropped per second\'","set title \'Packet drop graph\'", "set autoscale"
+,"plot \'data2.temp\' using 1:2 with lines title \'Packet drop graph\'","replot"};
+    
+    FILE * temp = fopen("data2.temp", "w");
+    
+
+    int num_packets = cntdrop;
+    double PART_T = 1;
+
+    double max_t = tmdrop[num_packets -1];
+    FILE * gnuplotPipe = popen ("gnuplot -persistent", "w");
+    int i,j;
+    j = 0;
+    int SIZ = (int) max_t/PART_T;
+    int num_freq[SIZ];
+    for(i = 0 ; i < SIZ;i++)
+        num_freq[i] = 0;
+    for (i=0; i < num_packets; i++)
+    {
+        int in = (int)(tmdrop[i]/PART_T);
+        num_freq[in]++;
+    }
+    double t = 0;
+    for(i=0 ; i < SIZ ; i++)
+    {   
+        fprintf(temp, "%lf %d\n", t, num_freq[i]);
+        t += PART_T;
+    }
+
+    fclose(temp);
+    for (i=0; i < 9; i++)
+       fprintf(gnuplotPipe, "%s \n", commandsForgnuplot[i]); 
+    
+    fclose(gnuplotPipe);
+    system("eog drop.png >/dev/null 2>&1");
+}
+
 
 void display_packlen()
 {
