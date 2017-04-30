@@ -83,11 +83,65 @@ void protocol_hierarchy();
 void display_traffic();
 void display_packlen();
 void filter();
-void print_ether_details(struct ethhdr* eth);
-void print_ip_details(struct iphdr* eth);
-void print_tcp_details(struct tcphdr* eth);
-void print_udp_details(struct udphdr* eth);
 unsigned short compute_tcp_checksum(struct iphdr *pIph, unsigned short *ipPayload);
 unsigned short compute_udp_checksum(struct iphdr *pIph, unsigned short *ipPayload);
 void display_drop();
+
+struct ethernet
+{
+	unsigned int src[6];
+	unsigned int dst[6];
+	unsigned int protocol;
+};
+typedef struct ethernet ethernet;
+
+struct ip_protocol
+{
+	unsigned int version;
+	unsigned int headlen;
+	unsigned int service;
+	unsigned int totlen;
+	unsigned int id;
+	unsigned int offset;
+	unsigned int time;
+	unsigned int protocol;
+	int checksum;
+	char src[50];
+	char dst[50];
+};
+typedef struct ip_protocol ip_protocol;
+
+struct udp_protocol
+{
+	int src;
+	int dst;
+	int len;
+	int checksum;
+};
+typedef struct udp_protocol udp_protocol;
+
+struct tcp_protocol
+{
+	unsigned int src;
+	unsigned int dst;
+	unsigned int seq_no;
+	unsigned int ack_no;
+	unsigned int headlen;
+	unsigned int urgent,ack,push,reset,syn,fin;
+	unsigned int window;
+	unsigned int checksum;
+	unsigned int urgent_ptr;
+};
+typedef struct tcp_protocol tcp_protocol;
+
+ethernet* get_ether_details(struct ethhdr*);
+void print_ether_details(ethernet*);
+ip_protocol* get_ip_details(struct iphdr*);
+void print_ip_details(ip_protocol*);
+udp_protocol* get_udp_details(struct udphdr*);
+void print_udp_details(udp_protocol*);
+tcp_protocol* get_tcp_details(struct tcphdr*);
+void print_tcp_details(tcp_protocol*);
+
+
 #endif
